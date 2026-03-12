@@ -195,11 +195,11 @@ app.get('/api/supplier/profile/:phone', async (req, res) => {
 
 app.use('/api/admin', (req, res, next) => {
     if (req.path === '/login') return next();
-    
+
     // Check role from header / custom token
     const adminId = req.headers['x-admin-id'];
     req.user = { role: adminId === ADMIN_CREDENTIALS.userId ? 'admin' : 'vendor' };
-    
+
     if (req.user.role !== 'admin') {
         return res.status(403).json({ error: 'Forbidden' });
     }
@@ -280,7 +280,7 @@ app.get('/api/grievances', async (req, res) => {
 app.post('/api/orders', async (req, res) => {
     try {
         const { vendorPhone, vendorName, vendorShop, vendorLocation, items, totalAmount, paymentMethod } = req.body;
-        
+
         // Check if vendor is suspended
         const vendor = await db.collection('vendors').findOne({ phone: vendorPhone });
         if (vendor && vendor.isActive === false) {
@@ -576,21 +576,29 @@ app.delete('/api/supplier/inventory/:id', async (req, res) => {
 app.get('/api/search/items', async (req, res) => {
     try {
         const { q } = req.query;
-        
+
         // Find suspended suppliers
         const suspendedSuppliers = await db.collection('suppliers').find({ isSuspended: true }).toArray();
         const suspendedPhones = suspendedSuppliers.map(s => s.phone);
-        
+
         const filter = {};
         if (q) filter.name = { $regex: q, $options: 'i' };
         if (suspendedPhones.length > 0) filter.phone = { $nin: suspendedPhones };
-        
+
         const items = await db.collection('inventoryItems').find(filter).sort({ price: 1 }).toArray();
         res.json({ items });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
+// ─── SERVE FRONTEND (PRODUCTION) ────────────────────
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '../client/dist')));
+    app.get('*', (req, res) => {
+        res.sendFile(path.resolve(__dirname, '../client/dist', 'index.html'));
+    });
+}
 
 // ─── START SERVER ───────────────────────────────────
 
