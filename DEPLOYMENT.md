@@ -28,7 +28,7 @@ You have already pushed your repository to GitHub using the `git push origin mai
    - **Branch**: `main`
    - **Root Directory**: Leave it **empty**!
    - **Environment**: Node
-   - **Build Command**: `npm run build`
+   - **Build Command**: `npm install --include=dev && npm run build`
    - **Start Command**: `npm start`
 6. Scroll down to **Advanced** and click **Add Environment Variable**. Add these two variables:
    - Key: `MONGO_URL` | Value: `(Your MongoDB Atlas URI from Step 2)`
